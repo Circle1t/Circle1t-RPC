@@ -8,6 +8,7 @@ import top.circle1t.rpc.handler.RpcReqHandler;
 import top.circle1t.rpc.provider.ServiceProvider;
 import top.circle1t.rpc.provider.impl.ZkServiceProvider;
 import top.circle1t.rpc.transmission.RpcServer;
+import top.circle1t.rpc.util.ShutdownHookUtil;
 import top.circle1t.rpc.util.ThreadPoolUtil;
 
 import java.net.ServerSocket;
@@ -45,6 +46,7 @@ public class SocketRpcServer implements RpcServer {
 
     @Override
     public void start() {
+        ShutdownHookUtil.addShutdownHook();
         try (ServerSocket serverSocket = new ServerSocket(PORT)){
             log.info("服务端启动成功！端口：{}", PORT);
             Socket socket;

@@ -1,5 +1,6 @@
 package top.circle1t.rpc.registry.impl;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import top.circle1t.rpc.constant.RpcConstant;
 import top.circle1t.rpc.factory.SingletonFactory;
@@ -7,6 +8,7 @@ import top.circle1t.rpc.registry.ServiceRegistry;
 import top.circle1t.rpc.registry.zk.ZkClient;
 import top.circle1t.rpc.util.IPUtil;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 /**
@@ -31,5 +33,14 @@ public class ZkServiceRegistry implements ServiceRegistry {
         String path = RpcConstant.ZK_RPC_ROOT_PATH + "/" + rpcServiceName + "/" + IPUtil.toIPWithPort(address);
         zkClient.createPersistentNode(path);
 
+    }
+
+    // 当本机关闭时 清理所有注册的节点
+    @SneakyThrows
+    @Override
+    public void clearAll(){
+        String host = InetAddress.getLocalHost().getHostAddress();
+        int port = RpcConstant.SERVER_PORT;
+        zkClient.clearIPWithPort(new InetSocketAddress(host, port));
     }
 }
