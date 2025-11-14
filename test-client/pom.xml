@@ -18,16 +18,11 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>top.circle1t</groupId>
-            <artifactId>rpc-core</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>top.circle1t</groupId>
             <artifactId>test-api</artifactId>
         </dependency>
-
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

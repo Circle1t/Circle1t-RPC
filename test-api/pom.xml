@@ -24,5 +24,9 @@
             <version>3.8.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>top.circle1t</groupId>
+            <artifactId>rpc-core</artifactId>
+        </dependency>
     </dependencies>
 </project>

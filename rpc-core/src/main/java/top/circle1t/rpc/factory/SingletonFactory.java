@@ -35,4 +35,13 @@ public class SingletonFactory {
             return t;
         }
     }
+
+    // 手动放入实例（若已存在则不覆盖，避免误操作）
+    public static void putInstance(Class<?> clazz, Object instance) {
+        if (Objects.isNull(clazz) || Objects.isNull(instance)) {
+            throw new RuntimeException("class或instance不能为空");
+        }
+        // 仅在缓存中不存在时放入，防止覆盖已有单例
+        INSTANCE_CACHE.putIfAbsent(clazz, instance);
+    }
 }

@@ -1,6 +1,7 @@
 package top.circle1t.rpc.loadbalance.impl;
 
 import cn.hutool.core.util.RandomUtil;
+import top.circle1t.rpc.dto.RpcRequest;
 import top.circle1t.rpc.loadbalance.LoadBalance;
 
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class RandomLoadBalance implements LoadBalance {
     @Override
-    public String select(List<String> list) {
+    public String select(List<String> list, RpcRequest rpcRequest) {
         return RandomUtil.randomEle(list);
     }
 }

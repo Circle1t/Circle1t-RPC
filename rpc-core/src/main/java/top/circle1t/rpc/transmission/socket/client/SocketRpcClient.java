@@ -12,6 +12,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  * 基于Socket的RPC客户端实现类
@@ -40,7 +42,7 @@ public class SocketRpcClient implements RpcClient {
      * @return 服务端返回的RpcResponse对象（包含调用结果或异常信息），异常时返回null
      */
     @Override
-    public RpcResponse<?> sendRequest(RpcRequest request) {
+    public Future<RpcResponse<?>> sendRequest(RpcRequest request) {
         InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(request);
         // try-with-resources语法：自动关闭实现AutoCloseable接口的资源（此处为Socket），避免资源泄露
         try (Socket socket = new Socket(inetSocketAddress.getHostName(), inetSocketAddress.getPort())) {
@@ -59,8 +61,7 @@ public class SocketRpcClient implements RpcClient {
 
             // 5. 接收响应：读取服务端返回的序列化数据，反序列化为Object对象，再强转为RpcResponse<?>
             Object o = inputStream.readObject();
-            return (RpcResponse<?>) o;
-
+            return CompletableFuture.completedFuture((RpcResponse<?>) o);
         } catch (Exception e) {
             log.error("发送RPC请求失败", e);
         }

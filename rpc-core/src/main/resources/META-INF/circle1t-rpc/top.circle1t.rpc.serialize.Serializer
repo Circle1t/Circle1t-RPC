@@ -1,0 +1,3 @@
+hessian=top.circle1t.rpc.serialize.impl.HessianSerializer
+kryo=top.circle1t.rpc.serialize.impl.KryoSerializer
+protostuff=top.circle1t.rpc.serialize.impl.ProtostuffSerializer

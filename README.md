@@ -1,1 +1,1 @@
-快速入门： circle1t.top
+笔记请到我的博客查看：[Circle1t](https://circle1t.top)

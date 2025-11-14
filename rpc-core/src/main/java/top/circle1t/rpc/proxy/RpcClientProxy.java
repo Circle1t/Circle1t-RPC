@@ -1,6 +1,15 @@
 package top.circle1t.rpc.proxy;
 
 import cn.hutool.core.util.IdUtil;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
+import lombok.SneakyThrows;
+import top.circle1t.rpc.annotation.Breaker;
+import top.circle1t.rpc.annotation.Retry;
+import top.circle1t.rpc.breaker.CircuitBreaker;
+import top.circle1t.rpc.breaker.CircuitBreakerManager;
 import top.circle1t.rpc.config.RpcServiceConfig;
 import top.circle1t.rpc.dto.RpcRequest;
 import top.circle1t.rpc.dto.RpcResponse;
@@ -12,6 +21,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Circle1t
@@ -46,11 +58,47 @@ public class RpcClientProxy implements InvocationHandler {
                 .version(rpcServiceConfig.getVersion())
                 .group(rpcServiceConfig.getGroup())
                 .build();
-        RpcResponse<?> result = rpcClient.sendRequest(request);
 
-        check(result, request);
+        Breaker breaker = method.getAnnotation(Breaker.class);
+        if (breaker == null) {
+            return sendReqWithRetry(request, method);
+        }
 
-        return result.getData();
+        CircuitBreaker circuitBreaker = CircuitBreakerManager.getCircuitBreaker(request.getRpcServiceName(), breaker);
+        if(!circuitBreaker.canRequest()){
+            throw new RpcException("已被熔断处理");
+        }
+
+        try {
+            Object o = sendReqWithRetry(request, method);
+            circuitBreaker.success();
+            return o;
+        } catch (Exception e) {
+            circuitBreaker.fail();
+            throw e;
+        }
+    }
+
+    @SneakyThrows
+    private Object sendReqWithRetry(RpcRequest request, Method method){
+        Retry retry = method.getAnnotation(Retry.class);
+        if (retry == null) {
+            return sendReq(request);
+        }
+
+        Retryer<Object> retryer = RetryerBuilder.newBuilder()
+                .retryIfExceptionOfType(retry.value())
+                .withStopStrategy(StopStrategies.stopAfterAttempt(retry.maxAttempts()))
+                .withWaitStrategy(WaitStrategies.fixedWait(retry.delay(), TimeUnit.MILLISECONDS))
+                .build();
+        return retryer.call(() -> sendReq(request));
+    }
+
+    private Object sendReq(RpcRequest request) throws InterruptedException, ExecutionException {
+        Future<RpcResponse<?>> future = rpcClient.sendRequest(request);
+        RpcResponse<?> rpcResponse = future.get();
+        check(rpcResponse, request);
+        return rpcResponse.getData();
     }
 
     private void check(RpcResponse<?> rpcResponse, RpcRequest rpcRequest){

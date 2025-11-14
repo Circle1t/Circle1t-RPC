@@ -1,0 +1,3 @@
+consistenthash=top.circle1t.rpc.loadbalance.impl.ConsistentHashLoadBalance
+random=top.circle1t.rpc.loadbalance.impl.RandomLoadBalance
+round=top.circle1t.rpc.loadbalance.impl.RoundLoadBalance
